@@ -1,177 +1,291 @@
-     H/TITLE Administration - General Configuration
-     H COPYRIGHT('(C) 2020 David Asta under MIT License')
-      * SYSTEM      : V4R5
-      * PROGRAMMER  : David Asta
-      * DATE-WRITTEN: 12/NOV/2020
-      *
-      * This program allows an Administrator user to display/change the
-      *   general Configuration values of the BBS stored in PCONFIG
-      **********************************************************************
-     H/Include CBKOPTIMIZ
-      **********************************************************************
-      * INDICATORS USED:
-      * 80 - *ON turns DSPATR(PR), which protects fields from being changed
-      * 81 - CBKPCFGREA CHAIN Not Found
-      **********************************************************************
-     FBBSADGCD  CF   E             WORKSTN
-     FPCONFIG   UF   E           K DISK
-      **********************************************************************
-      * Data structures
-     D/Include CBKDTAARA
-      * Constants
-     D cKeysDft        C                   CONST('F10=Edit   F12=Go back')
-     D cKeysEdit       C                   CONST('F10=Confirm Changes   F12=Can-
-     D                                     cel')
-     D cSavedOK        C                   CONST('Configuration was changed suc-
-     D                                     cessfully.')
-     D cSavedKO        C                   CONST('There was an error while writ-
-     D                                     ting to PCONFIG.')
-      * Variables
-     D/Include CBKPCFGDCL
-     D wCfgKey         S              6A
-     D wShowWelcome    S              1A
-     ***********************************************************************
-     C                   WRITE     HEADER
-     C   80              EVAL      KEYSLS = cKeysDft
-     C  N80              EVAL      KEYSLS = cKeysEdit
-     C                   WRITE     FOOTER
-     C                   EXFMT     BODY
-     C                   CLEAR                   MSGLIN
-     C                   EXSR      CheckFkeys
-      **********************************************************************
-      * Subroutine called automatically at startup
-      **********************************************************************
-     C     *INZSR        BEGSR
-     C                   EVAL      SCRSCR = 'BBSADGC'
-      * Protect fields from being modified
-     C                   EVAL      *IN80 = *ON
-      * Get values from PCONFIG and show them on screen
-     C                   EXSR      GetConfig
-     C                   EVAL      SCRNAM = wCfgBBSNAM
-     C                   EVAL      SCRLCR = WCfgLOCCRY
-     C                   EVAL      SCRLCT = wCfgLOCCTY
-     C                   EVAL      SCRTZC = wCfgTIMZON
-     C                   EVAL      SCRCLO = wCfgCLOSED
-     C                   EVAL      SCRSAL = wCfgSHWALD
-     C                   EVAL      SCRSWE = wCfgSHWWEL
-     C                   EVAL      SCRHID = wCfgHIDESO
-     C                   EVAL      SCRHLS = wCfgHLSOMS
-     C                   EVAL      SCRNFY = wCfgNUSRNF
-      * Get values from DATAARA and show them on screen
-     C/Include CBKHEADER
-     C                   ENDSR
-      **********************************************************************
-      * Check Function keys pressed by the user
-      **********************************************************************
-     C     CheckFkeys    BEGSR
-      * F10=Edit
-     C                   IF        *IN10 = *ON
-     C* N80              EXSR      SavePCONFIG
-     C*  80              EVAL      *IN80 = *OFF
-     C                   IF        *IN80 = *ON
-     C                   EVAL      *IN80 = *OFF
-     C                   ELSE
-     C                   EXSR      SavePCONFIG
-     C                   ENDIF
-     C                   ENDIF
-      * F12=Go back or F12=Cancel
-     C                   IF        *IN12 = *ON
-     C   80              MOVE      *ON           *INLR
-     C   80              RETURN
-     C  N80              EVAL      *IN80 = *ON
-     C                   ENDIF
-     C                   ENDSR
-      **********************************************************************
-      * Save changed values to PCONFIG
-      **********************************************************************
-     C     SavePCONFIG   BEGSR
-      * BBS Name
-     C     SCRNAM        IFNE      wCfgBBSNAM
-     C                   EVAL      wCfgKey = 'BBSNAM'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRNAM
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * BBS Location Country
-     C     SCRLCR        IFNE      WCfgLOCCRY
-     C                   EVAL      wCfgKey = 'LOCCRY'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRLCR
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * BBS Location City
-     C     SCRLCT        IFNE      wCfgLOCCTY
-     C                   EVAL      wCfgKey = 'LOCCTY'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRLCT
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * BBS Time Zone
-     C     SCRTZC        IFNE      wCfgTIMZON
-     C                   EVAL      wCfgKey = 'TIMZON'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRTZC
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * Closed to New Users?
-     C     SCRCLO        IFNE      wCfgCLOSED
-     C                   EVAL      wCfgKey = 'CLOSED'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRCLO
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * Show Access Level Description?
-     C     SCRSAL        IFNE      wCfgSHWALD
-     C                   EVAL      wCfgKey = 'SHWALD'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRSAL
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * Show Welcome screen?
-     C     SCRSWE        IFNE      wCfgSHWWEL
-     C                   EVAL      wCfgKey = 'SHWWEL'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRSWE
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * Hide SysOp from User Lists?
-     C     SCRHID        IFNE      wCfgHIDESO
-     C                   EVAL      wCfgKey = 'HIDESO'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRHID
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * Hide SysOp from User Lists?
-     C     SCRHLS        IFNE      wCfgHLSOMS
-     C                   EVAL      wCfgKey = 'HLSOMS'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRHLS
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-      * Notify New User Registration
-     C     SCRNFY        IFNE      wCfgNUSRNF
-     C                   EVAL      wCfgKey = 'NUSRNF'
-     C     wCfgKey       CHAIN     PCONFIG                            81
-     C  N81              EVAL      CNFVAL = SCRNFY
-     C  N81              UPDATE    CONFIG                               81
-     C   81              GOTO      UPDKO
-     C                   ENDIF
-     C     UPDOK         TAG
-     C                   EVAL      MSGLIN = cSavedOK
-     C                   GOTO      UPDEND
-     C     UPDKO         TAG
-     C                   EVAL      MSGLIN = cSavedKO
-     C     UPDEND        TAG
-     C                   EVAL      *IN80 = *ON
-     C                   ENDSR
-      **********************************************************************
-     D/Include CBKPCFGREA
+**FREE
+/TITLE Administration - General Configuration
+Ctl-Opt COPYRIGHT('(C) 2020 David Asta under MIT License');
+// SYSTEM      : V4R5
+// PROGRAMMER  : David Asta
+// DATE-WRITTEN: 12/NOV/2020
+//
+// This program allows an Administrator user to display/change the
+//   general Configuration values of the BBS stored in PCONFIG
+//*********************************************************************
+/Include CBKOPTIMIZ
+//*********************************************************************
+// INDICATORS USED:
+// 80 - *ON turns DSPATR(PR), which protects fields from being changed
+// 81 - CBKPCFGREA CHAIN Not Found
+//*********************************************************************
+Dcl-F BBSADGCD   WORKSTN;
+Dcl-F PCONFIG    Usage(*Update:*Delete) Keyed;
+//*********************************************************************
+// Data structures
+/Include CBKDTAARA
+// Constants
+Dcl-C cKeysDft        CONST('F10=Edit   F12=Go back');
+Dcl-C cKeysEdit       CONST('F10=Confirm Changes   F12=Can-
+cel');
+Dcl-C cSavedOK        CONST('Configuration was changed suc-
+cessfully.');
+Dcl-C cSavedKO        CONST('There was an error while writ-
+ting to PCONFIG.');
+// Variables
+/Include CBKPCFGDCL
+Dcl-S wCfgKey         Char(6);
+Dcl-S wShowWelcome    Char(1);
+Dcl-S ATag            Char(14);
+//*********************************************************************
+Write HEADER;
+If *In80;
+  KEYSLS = cKeysDft;
+Endif;
+If not *In80;
+  KEYSLS = cKeysEdit;
+Endif;
+Write FOOTER;
+Exfmt BODY;
+Clear MSGLIN;
+Exsr CheckFkeys;
+//*********************************************************************
+// Subroutine called automatically at startup
+//*********************************************************************
+BegSr *INZSR;
+  SCRSCR = 'BBSADGC';
+  // Protect fields from being modified
+  *IN80 = *ON;
+  // Get values from PCONFIG and show them on screen
+  Exsr GetConfig;
+  SCRNAM = wCfgBBSNAM;
+  SCRLCR = WCfgLOCCRY;
+  SCRLCT = wCfgLOCCTY;
+  SCRTZC = wCfgTIMZON;
+  SCRCLO = wCfgCLOSED;
+  SCRSAL = wCfgSHWALD;
+  SCRSWE = wCfgSHWWEL;
+  SCRHID = wCfgHIDESO;
+  SCRHLS = wCfgHLSOMS;
+  SCRNFY = wCfgNUSRNF;
+  // Get values from DATAARA and show them on screen
+/Include CBKHEADER
+EndSr;
+//*********************************************************************
+// Check Function keys pressed by the user
+//*********************************************************************
+BegSr CheckFkeys;
+  // F10=Edit
+  If *IN10 = *ON;
+    // N80              EXSR      SavePCONFIG
+    //  80              EVAL      *IN80 = *OFF
+    If *IN80 = *ON;
+      *IN80 = *OFF;
+    Else;
+      Exsr SavePCONFIG;
+    EndIf;
+  EndIf;
+  // F12=Go back or F12=Cancel
+  If *IN12 = *ON;
+    If *In80;
+      *INLR = *ON;
+    Endif;
+    If *In80;
+      Return;
+    Endif;
+    If not *In80;
+      *IN80 = *ON;
+    Endif;
+  EndIf;
+EndSr;
+//*********************************************************************
+// Save changed values to PCONFIG
+//*********************************************************************
+BegSr SavePCONFIG;
+  // BBS Name
+  If SCRNAM <> wCfgBBSNAM;
+    wCfgKey = 'BBSNAM';
+    Chain wCfgKey PCONFIG;
+    *IN81 = not %Found;
+    If not *In81;
+      CNFVAL = SCRNAM;
+    Endif;
+    If not *In81;
+      Update(e) CONFIG;
+      *IN81 = %Error;
+    Endif;
+    If *In81;
+      ATag = 'UPDKO';
+    Endif;
+  EndIf;
+  If ATag = *Blanks;
+    // BBS Location Country
+    If SCRLCR <> WCfgLOCCRY;
+      wCfgKey = 'LOCCRY';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRLCR;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // BBS Location City
+    If SCRLCT <> wCfgLOCCTY;
+      wCfgKey = 'LOCCTY';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRLCT;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // BBS Time Zone
+    If SCRTZC <> wCfgTIMZON;
+      wCfgKey = 'TIMZON';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRTZC;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // Closed to New Users?
+    If SCRCLO <> wCfgCLOSED;
+      wCfgKey = 'CLOSED';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRCLO;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // Show Access Level Description?
+    If SCRSAL <> wCfgSHWALD;
+      wCfgKey = 'SHWALD';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRSAL;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // Show Welcome screen?
+    If SCRSWE <> wCfgSHWWEL;
+      wCfgKey = 'SHWWEL';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRSWE;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // Hide SysOp from User Lists?
+    If SCRHID <> wCfgHIDESO;
+      wCfgKey = 'HIDESO';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRHID;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // Hide SysOp from User Lists?
+    If SCRHLS <> wCfgHLSOMS;
+      wCfgKey = 'HLSOMS';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRHLS;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    // Notify New User Registration
+    If SCRNFY <> wCfgNUSRNF;
+      wCfgKey = 'NUSRNF';
+      Chain wCfgKey PCONFIG;
+      *IN81 = not %Found;
+      If not *In81;
+        CNFVAL = SCRNFY;
+      Endif;
+      If not *In81;
+        Update(e) CONFIG;
+        *IN81 = %Error;
+      Endif;
+      If *In81;
+        ATag = 'UPDKO';
+      Endif;
+    EndIf;
+  EndIf;
+  If ATag = *Blanks;
+    MSGLIN = cSavedOK;
+    ATag = 'UPDEND';
+  EndIf;
+  If ATag = 'UPDKO' or ATag = *Blanks;
+    ATag = *Blanks;
+    MSGLIN = cSavedKO;
+  EndIf;
+  // branch when ATag = 'UPDEND'
+  ATag = *Blanks;
+  *IN80 = *ON;
+EndSr;
+//*********************************************************************
+/Include CBKPCFGREA
