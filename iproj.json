@@ -1,7 +1,9 @@
 {
   "description": "BBS for IBM i",
   "repository": "git@github.com:bmarolleau/BBS400.git",
-  "includePath": ["src/copybooks"],
+  "includePath": [
+    "src/copybooks"
+  ],
   "extensions": {
     "arcad": {
       "code": "BBS400",
